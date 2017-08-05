@@ -47,27 +47,29 @@ class Game ():
             print(self.board.board_icons())
             command = self.take_turn()
             if command == 'replay':
-                self.replay()
+                self.replay(self.board.size, turns)
         print(self.board.board_icons())
+        print(self.player + " victory!")
 
-    def replay (self):
-        replay_board = Board(self.board.size)
-        for turn in self.turns:
+    def replay (self, board_size, turns):
+        replay_board = Board(board_size)
+        for turn in turns:
             replay_board.board[turn.drop_location[1]][turn.drop_location[0]] = Checker(turn.player)
             print(replay_board.board_icons())
-            input("enter to continue >")
+            input("<enter to continue> ")
 
     def take_turn (self, player_input=None):
         if player_input == None:
-            player_input = input("> ")
+            player_input = input("<" + self.player + "> ")
         if player_input == "replay":
             return 'replay'
         turn = self.board.drop_checker(self.player, player_input)
         if turn:
             self.turns.append(turn)
-            self.player = self.change_turns()
             if turn.victory == True:
                 self.victory = True
+            else:
+                self.player = self.change_turns()
         if len(self.turns) == self.board.size[0] * self.board.size[1]:
             print("uh... the board's full.")
             self.victory = True
@@ -114,7 +116,6 @@ class Board ():
                         except IndexError:
                             pass
                     if connections >= 3:
-                        print(colour + " victory")
                         return Turn([location, rows_fallen], colour, True)
                 return Turn([location, rows_fallen], colour, False)
             rows_fallen -= 1
@@ -147,6 +148,7 @@ class Board ():
         output += "\n"
         for i in range(1, self.size[0] + 1):
             output += str(i)
+        output += "\n"
         return output
 
 class Checker ():
@@ -167,27 +169,62 @@ title = """
 instructions = """
 welcome to snek 4, fun game for fun family
 
-instructions:
+menu:
+'play' to begin game and 'help' to read this again
+'save <filename>' to save last game to file
+'load <filename>' to replay game on file
+if your name is ali sezer do 'unittest'
+oh and 'quit' if you're bored...
+
+in game:
 first player is yellow (X) and second is red (O)
 to place piece, enter number
 to replay enter 'replay'
 to exit enter 'exit'
-
-'play' to begin game and 'help' to read this again
-oh and 'quit' if you're bored...
 """
+board_size = [7,6]
 
 print(title)
 print(instructions)
 while True:
-    command = input("> ")
-    if command == 'play':
-        game = Game('yellow', [7,6])
+    command = input("<menu> ")
+    if command == "play":
+        game = Game('yellow', board_size)
         game.play_game()
-    elif command == 'help':
+    elif command == "help":
         print(instructions)
-    elif command == 'unittest':
+    elif command.startswith("save"):
+        try:
+            game_file = open('saves/' + command.split("save ", 1)[1], 'w+')
+        except PermissionError:
+            print("ya got to put a file name")
+        try:
+            for turn in game.turns:
+                game_file.write(str(turn.drop_location) + turn.player + "\n")
+            game_file.close()
+            print("done!")
+        except NameError:
+            print("no game played!")
+    elif command.startswith("load"):
+        try:
+            game_file = open('saves/' + command.split("load ", 1)[1], 'r')
+        except PermissionError:
+            print("ya got to put a file name")
+        loaded_turns = []
+        for line in game_file:
+            # yes i know i could use regex here but i'm tired k
+            line = line.rstrip()
+            awful_numbers = line.split("]")
+            messy_numbers = awful_numbers[0].split(", ")
+            better_numbers = [int(messy_numbers[0].replace("[", "")), int(messy_numbers[1].replace("]", ""))]
+            loaded_turns.append(Turn(better_numbers, awful_numbers[1], False))
+        load_game = Game('yellow', board_size)
+        load_game.replay(board_size, loaded_turns)
+    elif command == "unittest":
         unittest.main()
-    elif command == 'quit':
-        print('k bye')
+    elif command == "quit":
+        print("k bye")
         break
+    else:
+        print("not a command :(")
+        print("do 'help' to hear the commands")

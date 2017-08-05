@@ -47,9 +47,10 @@ class Game ():
         return 'yellow'
 
 class Turn ():
-    def __init__ (self, drop_location, player):
+    def __init__ (self, drop_location, player, victory):
         self.drop_location = drop_location
         self.player = player
+        self.victory = victory
 
 class Board ():
     def __init__ (self, size):
@@ -74,17 +75,16 @@ class Board ():
         for row in reversed(self.board):
             if row[location].colour == 'empty':
                 row[location] = Checker(colour)
-                for direction_pair in [[[1, 0], [-1, 0]], [[0, 1], [0, -1]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]]:
+                for direction_pair in [[[0, 1], [0, -1]], [[1, 0], [-1, 0]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]]:
                     connections = 0
                     for direction in direction_pair:
                         try:
-                            connections += self.try_direction([location, rows_fallen], direction, colour, connections)
+                            connections += self.try_direction([location, rows_fallen], direction, colour, 0)
                         except IndexError:
                             pass
-                        print(connections)
-                        if connections >= 3:
-                            print('victory')
-                            break
+                    if connections >= 3:
+                        print(colour + ' victory')
+                        break
                 return Turn([location, rows_fallen], colour)
             rows_fallen -= 1
         print("row already full up")
@@ -92,11 +92,12 @@ class Board ():
 
     def try_direction (self, location, direction, colour, connections):
         test_location = [location[0] + direction[0], location[1] + direction[1]]
-        print(test_location)
-        if self.board[test_location[1]][test_location[0]].colour == colour:
-            print('yes')
-            connections += self.try_direction (test_location, direction, colour, connections)
-            connections += 1
+        try:
+            if self.board[test_location[1]][test_location[0]].colour == colour:
+                connections += self.try_direction (test_location, direction, colour, connections)
+                connections += 1
+        except IndexError:
+            pass
         return connections
 
     def board_icons (self):

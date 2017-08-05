@@ -1,3 +1,8 @@
+# TODO: replay turns
+# TODO: export file
+# TODO: menu
+# TODO: redo board printing REMEMBER TO FIX UNIT TEST WHEN DOING SO
+
 import unittest
 from unittest.mock import patch
 
@@ -5,14 +10,25 @@ class Tests (unittest.TestCase):
     def setUp (self):
         pass
 
-    def test_check_game (self):
+    def test_game (self):
         self.game = Game('yellow', [7,6])
         self.game.take_turn(player_input=1)
         self.assertTrue(self.game.turns[0].drop_location == [0,5])
 
-    def test_check_board_icons (self):
+    def test_invalid (self):
+        self.game = Game('yellow', [7,6])
+        self.game.take_turn(player_input="boop")
+        self.assertTrue(len(self.game.turns) == 0)
+
+    def test_board_icons (self):
         self.empty_board = Board([2,2])
         self.assertTrue(self.empty_board.board_icons() == "..\n..\n12")
+
+    def test_game_logic (self):
+        self.game = Game('yellow', [7,6])
+        for x in [1, 5, 4, 3, 4, 4, 3, 2, 3, 2, 2, 1, 5, 1, 1]:
+            self.game.take_turn(player_input=x)
+        self.assertIs(self.game.victory, True)
 
     def test_check_icon (self):
         self.yellow_checker = Checker('yellow')
@@ -27,11 +43,13 @@ class Game ():
         self.player = first_player
         self.board = Board(board_size)
         self.turns = []
+        self.victory = False
 
     def play_game (self):
-        while True:
+        while self.victory == False:
             print(self.board.board_icons())
             self.take_turn()
+        print(self.board.board_icons())
 
     def take_turn (self, player_input=None):
         if (player_input == None):
@@ -40,6 +58,11 @@ class Game ():
         if (turn):
             self.turns.append(turn)
             self.player = self.change_turns()
+            if turn.victory == True:
+                self.victory = True
+        if (len(self.turns) == game.board.size[0] * game.board.size[1]):
+            print("uh... the board's full.")
+            self.victory == True
 
     def change_turns (self):
         if self.player == 'yellow':
@@ -83,9 +106,9 @@ class Board ():
                         except IndexError:
                             pass
                     if connections >= 3:
-                        print(colour + ' victory')
-                        break
-                return Turn([location, rows_fallen], colour)
+                        print(colour + " victory")
+                        return Turn([location, rows_fallen], colour, True)
+                return Turn([location, rows_fallen], colour, False)
             rows_fallen -= 1
         print("row already full up")
         return None
@@ -120,10 +143,8 @@ class Checker ():
         self.colour = colour
         self.icon = {'yellow': "X", 'red': "O", 'empty': "."}[colour]
 
-game = Game('yellow', [7,6])
-
-while True:
-    game.play_game()
+game = Game('yellow', [2,2])
+game.play_game()
 
 if __name__ == '__main__':
     unittest.main()

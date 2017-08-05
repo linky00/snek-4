@@ -1,7 +1,4 @@
-# TODO: replay turns
 # TODO: export file
-# TODO: menu
-# TODO: redo board printing REMEMBER TO FIX UNIT TEST WHEN DOING SO
 
 import unittest
 from unittest.mock import patch
@@ -22,7 +19,7 @@ class Tests (unittest.TestCase):
 
     def test_board_icons (self):
         self.empty_board = Board([2,2])
-        self.assertTrue(self.empty_board.board_icons() == "..\n..\n12")
+        self.assertTrue(self.empty_board.board_icons() == "..\n..\n--\n12")
 
     def test_game_logic (self):
         self.game = Game('yellow', [7,6])
@@ -48,21 +45,32 @@ class Game ():
     def play_game (self):
         while self.victory == False:
             print(self.board.board_icons())
-            self.take_turn()
+            command = self.take_turn()
+            if command == 'replay':
+                self.replay()
         print(self.board.board_icons())
 
+    def replay (self):
+        replay_board = Board(self.board.size)
+        for turn in self.turns:
+            replay_board.board[turn.drop_location[1]][turn.drop_location[0]] = Checker(turn.player)
+            print(replay_board.board_icons())
+            input("enter to continue >")
+
     def take_turn (self, player_input=None):
-        if (player_input == None):
+        if player_input == None:
             player_input = input("> ")
+        if player_input == "replay":
+            return 'replay'
         turn = self.board.drop_checker(self.player, player_input)
-        if (turn):
+        if turn:
             self.turns.append(turn)
             self.player = self.change_turns()
             if turn.victory == True:
                 self.victory = True
-        if (len(self.turns) == game.board.size[0] * game.board.size[1]):
+        if len(self.turns) == self.board.size[0] * self.board.size[1]:
             print("uh... the board's full.")
-            self.victory == True
+            self.victory = True
 
     def change_turns (self):
         if self.player == 'yellow':
@@ -134,6 +142,9 @@ class Board ():
             for icon in row:
                 row_output += icon
             output += row_output + "\n"
+        for i in range(self.size[0]):
+            output += "-"
+        output += "\n"
         for i in range(1, self.size[0] + 1):
             output += str(i)
         return output
@@ -143,8 +154,40 @@ class Checker ():
         self.colour = colour
         self.icon = {'yellow': "X", 'red': "O", 'empty': "."}[colour]
 
-game = Game('yellow', [2,2])
-game.play_game()
+title = """
+ _______  __    _  _______  ___   _      _   ___
+|       ||  |  | ||       ||   | | |    | | |   |
+|  _____||   |_| ||    ___||   |_| |    | |_|   |
+| |_____ |       ||   |___ |      _|    |       |
+|_____  ||  _    ||    ___||     |_     |___    |
+ _____| || | |   ||   |___ |    _  |        |   |
+|_______||_|  |__||_______||___| |_|        |___|
 
-if __name__ == '__main__':
-    unittest.main()
+"""
+instructions = """
+welcome to snek 4, fun game for fun family
+
+instructions:
+first player is yellow (X) and second is red (O)
+to place piece, enter number
+to replay enter 'replay'
+to exit enter 'exit'
+
+'play' to begin game and 'help' to read this again
+oh and 'quit' if you're bored...
+"""
+
+print(title)
+print(instructions)
+while True:
+    command = input("> ")
+    if command == 'play':
+        game = Game('yellow', [7,6])
+        game.play_game()
+    elif command == 'help':
+        print(instructions)
+    elif command == 'unittest':
+        unittest.main()
+    elif command == 'quit':
+        print('k bye')
+        break

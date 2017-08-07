@@ -122,12 +122,13 @@ class Board ():
 
     def try_direction (self, location, direction, colour, connections):
         test_location = [location[0] + direction[0], location[1] + direction[1]]
-        try:
-            if self.board[test_location[1]][test_location[0]].colour == colour:
-                connections += self.try_direction (test_location, direction, colour, connections)
-                connections += 1
-        except IndexError:
-            pass
+        if test_location[0] < 0 or test_location[1] < 0:
+            try:
+                if self.board[test_location[1]][test_location[0]].colour == colour:
+                    connections += self.try_direction (test_location, direction, colour, connections)
+                    connections += 1
+            except IndexError:
+                pass
         return connections
 
     def board_icons (self):

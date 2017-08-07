@@ -45,7 +45,7 @@ class Game ():
             print(self.board.board_icons())
             command = self.take_turn()
             if command == 'replay':
-                self.replay(self.board.size, turns)
+                self.replay(self.board.size, self.turns)
         print(self.board.board_icons())
         print(self.player + " victory!")
 
@@ -179,7 +179,6 @@ in game:
 first player is yellow (X) and second is red (O)
 to place piece, enter number
 to replay enter 'replay'
-to exit enter 'exit'
 """
 board_size = [7,6]
 
